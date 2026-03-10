@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Attendance History - Face Recognition Attendance</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="static/css/style.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="main-content text-center py-5">
+        <div class="d-flex flex-column justify-content-center align-items-center mb-5">
+            <h2 class="fw-bold mb-2">Attendance History</h2>
+            <p class="text-muted mb-4" style="color: var(--text-secondary) !important;">Review and export daily attendance logs.</p>
+            <button id="exportBtn" class="btn btn-success shadow-sm fw-bold px-4 py-2 text-white" style="border-radius: 30px; letter-spacing: 0.5px; background: #10b981; border: none;">
+                <i class="fa-solid fa-download me-2"></i>Export CSV
+            </button>
+        </div>
+        
+        <div class="card p-4 border-0 text-start mx-auto" style="border-radius: 25px; background: var(--bg-card); max-width: 1000px;">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+                <div class="d-flex align-items-center mb-3 mb-md-0">
+                    <div class="icon-box text-glow-success bg-opacity-10 d-inline-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px; border-radius: 12px; background-color: rgba(74, 222, 128, 0.1);">
+                        <i class="fa-solid fa-table"></i>
+                    </div>
+                    <h5 class="fw-bold mb-0">Daily Attendance Records</h5>
+                </div>
+                
+                <div class="input-group" style="width: 100%; max-width: 300px;">
+                    <span class="input-group-text border-0 ps-3 pe-2" style="background-color: var(--bg-body); border-radius: 20px 0 0 20px;">
+                        <i class="fa-solid fa-search text-muted"></i>
+                    </span>
+                    <input type="text" class="form-control border-0 shadow-none bg-transparent" id="searchInput" placeholder="Search by name or ID..." style="background-color: var(--bg-body) !important; border-radius: 0 20px 20px 0; color: var(--text-primary);">
+                </div>
+            </div>
+            
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-borderless table-hover align-middle mb-0" id="historyTable" width="100%" cellspacing="0">
+                        <thead style="border-bottom: 2px solid var(--border-color);">
+                            <tr>
+                                <th class="text-muted fw-bold small pb-3" style="color: var(--text-secondary) !important;">DATE</th>
+                                <th class="text-muted fw-bold small pb-3" style="color: var(--text-secondary) !important;">TIME</th>
+                                <th class="text-muted fw-bold small pb-3" style="color: var(--text-secondary) !important;">STUDENT/EMPLOYEE ID</th>
+                                <th class="text-muted fw-bold small pb-3" style="color: var(--text-secondary) !important;">NAME</th>
+                                <th class="text-muted fw-bold small pb-3" style="color: var(--text-secondary) !important;">STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyBody">
+                            <!-- Data populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav active" id="bottomNav">
+      <a href="index.html" class="bottom-nav-item" id="nav-dashboard">
+        <i class="fa-solid fa-house"></i>
+        Dashboard
+      </a>
+      <a href="register.html" class="bottom-nav-item" id="nav-register">
+        <i class="fa-solid fa-user-plus"></i>
+        Register Face
+      </a>
+      <a href="recognize.html" class="bottom-nav-item" id="nav-recognize">
+        <i class="fa-solid fa-camera"></i>
+        Take Attendance
+      </a>
+      <a href="history.html" class="bottom-nav-item active" id="nav-history">
+        <i class="fa-solid fa-clipboard-list"></i>
+        Records
+      </a>
+      <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle Theme">
+        <i class="fa-solid fa-sun" id="themeIcon"></i>
+      </button>
+    </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="static/js/app-static.js"></script>
+    <script>
+        function loadHistory() {
+            const tbody = document.getElementById('historyBody');
+            const data = app.getHistory();
+            
+            tbody.innerHTML = '';
+            
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fa-2x mb-2" style="opacity: 0.5;"></i><br>No attendance records found.</td></tr>';
+                return;
+            }
+            
+            data.forEach(record => {
+                tbody.innerHTML += `
+                    <tr class="history-row">
+                        <td class="text-secondary"><i class="fa-regular fa-calendar me-2"></i>${record.date}</td>
+                        <td><i class="fa-regular fa-clock me-2 text-muted"></i>${record.time}</td>
+                        <td><span class="badge bg-secondary">${record.studentId}</span></td>
+                        <td class="fw-bold text-dark searchable-name">${record.name}</td>
+                        <td><span class="badge bg-success bg-opacity-10 text-success px-3 py-2 border border-success border-opacity-25 rounded-pill"><i class="fa-solid fa-check-circle me-1"></i>Present</span></td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById('searchInput').addEventListener('keyup', function() {
+            const filter = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.history-row');
+            rows.forEach(row => {
+                row.style.display = row.innerText.toLowerCase().includes(filter) ? '' : 'none';
+            });
+        });
+
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            const data = app.getHistory();
+            if (data.length === 0) return alert("No data to export");
+            
+            let csv = "Date,Time,Student ID,Name,Status\n";
+            data.forEach(r => {
+                csv += `${r.date},${r.time},${r.studentId},${r.name},${r.status}\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('hidden', '');
+            a.setAttribute('href', url);
+            a.setAttribute('download', 'attendance.csv');
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
+
+        loadHistory();
+
+        // Theme toggle logic
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const themeIcon = document.getElementById('themeIcon');
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        if (savedTheme === 'light') themeIcon.classList.replace('fa-sun', 'fa-moon');
+
+        themeToggleBtn.addEventListener('click', () => {
+            let currentTheme = document.documentElement.getAttribute('data-theme');
+            let targetTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', targetTheme);
+            localStorage.setItem('theme', targetTheme);
+            if (targetTheme === 'dark') {
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Take Attendance - Face Recognition Attendance</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="static/css/style.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="main-content text-center py-5">
+        <div class="d-flex flex-column justify-content-center align-items-center mb-5">
+            <h2 class="fw-bold mb-2">Live Attendance Recognition</h2>
+            <p class="text-muted mb-4" style="color: var(--text-secondary) !important;">Seamlessly mark attendance using real-time face tracking.</p>
+            <button id="toggleCamBtn" class="btn btn-primary shadow-sm fw-bold px-4 py-2" style="border-radius: 30px; letter-spacing: 0.5px;">
+                <i class="fa-solid fa-video me-2"></i>Start Camera
+            </button>
+        </div>
+        
+        <div class="row justify-content-center g-4">
+            <!-- Camera Section -->
+            <div class="col-lg-8">
+                <div class="card h-100 p-4 border-0" style="border-radius: 25px; background: var(--bg-card);">
+                    <div class="d-flex justify-content-between align-items-center w-100 mb-4 text-start">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-box text-glow-purple bg-opacity-10 d-inline-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px; border-radius: 12px; background-color: rgba(192, 132, 252, 0.1);">
+                                <i class="fa-solid fa-expand"></i>
+                            </div>
+                            <h5 class="fw-bold mb-0">Detection Feed</h5>
+                        </div>
+                        <span id="systemStatus" class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary px-3 py-2 border border-secondary border-opacity-25" style="font-size: 0.85rem;">System Idle</span>
+                    </div>
+                    
+                    <div class="card-body p-0 position-relative d-flex justify-content-center w-100">
+                        <div class="video-container shadow-sm w-100" style="max-width: 700px; border-radius: 20px; overflow: hidden; background: #000; position: relative;">
+                            <video id="videoElement" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+                            <canvas id="canvasElement" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></canvas>
+                            
+                            <!-- Real-time Status Overlay -->
+                            <div id="recognitionOverlay" class="d-none shadow d-inline-flex align-items-center justify-content-center px-4 py-2 position-absolute" style="bottom: 20px; left: 50%; transform: translateX(-50%); border-radius: 30px; z-index: 10; font-weight: 600; letter-spacing: 0.5px;">
+                                <i class="fa-solid fa-circle-user me-2"></i><span id="detectedName">Unknown</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 text-center w-100">
+                        <p class="text-muted small mb-0 p-3 rounded-4 mx-auto" style="max-width: 600px; background-color: rgba(245, 158, 11, 0.1); color: #d97706 !important;">
+                            <i class="fa-solid fa-lightbulb me-2 text-warning"></i> Face recognition is active only when the camera is running. Ensure adequate lighting.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Live Log -->
+            <div class="col-lg-4">
+                <div class="card h-100 p-4 border-0 text-start" style="border-radius: 25px; background: var(--bg-card);">
+                    <div class="d-flex align-items-center mb-4 text-start">
+                        <div class="icon-box text-glow-success bg-opacity-10 d-inline-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px; border-radius: 12px; background-color: rgba(74, 222, 128, 0.1);">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                        </div>
+                        <h5 class="fw-bold mb-0">Live Activity Log</h5>
+                    </div>
+                    
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush" id="liveLog" style="max-height: 500px; overflow-y: auto;">
+                            <li class="list-group-item text-center py-5 border-0 bg-transparent" id="emptyLogMsg">
+                                <i class="fa-solid fa-hourglass-empty fa-2x mb-3" style="color: var(--text-secondary); opacity: 0.5;"></i><br>
+                                <span style="color: var(--text-secondary);">No attendance marked yet.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav active" id="bottomNav">
+      <a href="index.html" class="bottom-nav-item" id="nav-dashboard">
+        <i class="fa-solid fa-house"></i>
+        Dashboard
+      </a>
+      <a href="register.html" class="bottom-nav-item" id="nav-register">
+        <i class="fa-solid fa-user-plus"></i>
+        Register Face
+      </a>
+      <a href="recognize.html" class="bottom-nav-item active" id="nav-recognize">
+        <i class="fa-solid fa-camera"></i>
+        Take Attendance
+      </a>
+      <a href="history.html" class="bottom-nav-item" id="nav-history">
+        <i class="fa-solid fa-clipboard-list"></i>
+        Records
+      </a>
+      <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle Theme">
+        <i class="fa-solid fa-sun" id="themeIcon"></i>
+      </button>
+    </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="static/js/face-api.min.js"></script>
+    <script src="static/js/app-static.js"></script>
+    <script>
+        const video = document.getElementById('videoElement');
+        const canvas = document.getElementById('canvasElement');
+        const toggleBtn = document.getElementById('toggleCamBtn');
+        const systemStatus = document.getElementById('systemStatus');
+        const detectedNameUI = document.getElementById('detectedName');
+        const recognitionOverlay = document.getElementById('recognitionOverlay');
+        const liveLog = document.getElementById('liveLog');
+
+        let streamActive = false;
+        let faceMatcher = null;
+        let modelsLoaded = false;
+
+        async function init() {
+            systemStatus.innerText = "Loading AI Models...";
+            await app.initModels();
+            modelsLoaded = true;
+            systemStatus.innerText = "System Ready";
+            updateFaceMatcher();
+        }
+
+        function updateFaceMatcher() {
+            if (app.users.length > 0) {
+                const labeledDescriptors = app.users.map(u => {
+                    return new faceapi.LabeledFaceDescriptors(u.studentId, u.descriptors);
+                });
+                faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.6);
+            }
+        }
+
+        init();
+
+        toggleBtn.addEventListener('click', async () => {
+            if (!streamActive) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    video.srcObject = stream;
+                    streamActive = true;
+                    toggleBtn.innerHTML = '<i class="fa-solid fa-video-slash me-2"></i>Stop Camera';
+                    toggleBtn.classList.replace('btn-primary', 'btn-danger');
+                    systemStatus.className = 'badge bg-success pulse';
+                    systemStatus.innerText = 'Active & Scanning';
+                    
+                    video.onplay = () => onPlay();
+                } catch (err) {
+                    alert("Camera Error: " + err.message);
+                }
+            } else {
+                stopCamera();
+            }
+        });
+
+        function stopCamera() {
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+            }
+            streamActive = false;
+            toggleBtn.innerHTML = '<i class="fa-solid fa-video me-2"></i>Start Camera';
+            toggleBtn.classList.replace('btn-danger', 'btn-primary');
+            systemStatus.className = 'badge bg-secondary';
+            systemStatus.innerText = 'System Idle';
+            recognitionOverlay.classList.add('d-none');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0,0, canvas.width, canvas.height);
+        }
+
+        async function onPlay() {
+            if (!streamActive || video.paused || video.ended) return;
+
+            const displaySize = { width: video.videoWidth, height: video.videoHeight };
+            faceapi.matchDimensions(canvas, displaySize);
+
+            const detections = await faceapi.detectAllFaces(video).withFaceLandmarks().withFaceDescriptors();
+            const resizedDetections = faceapi.resizeResults(detections, displaySize);
+            
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (resizedDetections.length > 0) {
+                recognitionOverlay.classList.remove('d-none');
+                
+                resizedDetections.forEach(detection => {
+                    let label = "Unknown";
+                    let color = "red";
+
+                    if (faceMatcher) {
+                        const result = faceMatcher.findBestMatch(detection.descriptor);
+                        if (result.label !== 'unknown') {
+                            const user = app.users.find(u => u.studentId === result.label);
+                            label = user.name;
+                            color = "green";
+                            
+                            const attResult = app.markAttendance(user);
+                            if (attResult.success) {
+                                appendToLog(user.name, user.studentId, attResult.record.time);
+                            }
+                        }
+                    }
+
+                    detectedNameUI.innerText = label;
+                    recognitionOverlay.className = `overlay-status shadow bg-${color === 'green' ? 'success' : 'danger'}`;
+                    
+                    const box = detection.detection.box;
+                    const drawBox = new faceapi.draw.DrawBox(box, { label: label, boxColor: color });
+                    drawBox.draw(canvas);
+                });
+            } else {
+                recognitionOverlay.classList.add('d-none');
+            }
+
+            setTimeout(() => onPlay(), 100);
+        }
+
+        function appendToLog(name, id, time) {
+            const emptyMsg = document.getElementById('emptyLogMsg');
+            if (emptyMsg) emptyMsg.remove();
+            
+            const existing = document.getElementById(`log-${id}`);
+            if (existing) return;
+
+            const li = document.createElement('li');
+            li.id = `log-${id}`;
+            li.className = 'list-group-item d-flex justify-content-between align-items-center py-3 animation-fade-in';
+            li.innerHTML = `
+                <div>
+                    <h6 class="my-0 font-weight-bold text-dark">${name}</h6>
+                    <small class="text-muted"><i class="fa-solid fa-id-badge me-1"></i>${id}</small>
+                </div>
+                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2"><i class="fa-solid fa-check me-1"></i>${time}</span>
+            `;
+            liveLog.prepend(li);
+        }
+
+        // Theme toggle logic
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const themeIcon = document.getElementById('themeIcon');
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        if (savedTheme === 'light') themeIcon.classList.replace('fa-sun', 'fa-moon');
+
+        themeToggleBtn.addEventListener('click', () => {
+            let currentTheme = document.documentElement.getAttribute('data-theme');
+            let targetTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', targetTheme);
+            localStorage.setItem('theme', targetTheme);
+            if (targetTheme === 'dark') {
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
+            }
+        });
+    </script>
+    <style>
+        .animation-fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .pulse { animation: statusPulse 2s infinite; }
+        @keyframes statusPulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+    </style>
+</body>
+</html>
