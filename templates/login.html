@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="card p-5 border-0 text-center" style="width: 100%; max-width: 450px; border-radius: 30px; background: var(--bg-card); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);">
+        <div class="mb-4">
+            <div class="icon-box bg-primary bg-opacity-10 text-glow-primary d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px; border-radius: 25px;">
+                <i class="fa-solid fa-user-shield fa-3x"></i>
+            </div>
+            <h3 class="fw-bold mb-2">Admin Login</h3>
+            <p class="text-muted" style="color: var(--text-secondary) !important;">Face Recognition Attendance System</p>
+        </div>
+        
+        <form id="loginForm" class="text-start">
+            <div class="mb-4">
+                <label for="username" class="form-label text-muted fw-bold small" style="color: var(--text-secondary) !important;">USERNAME</label>
+                <input type="text" class="form-control form-control-lg bg-body text-body border-0 shadow-sm" style="border-radius: 12px; height: 55px;" id="username" required placeholder="admin">
+            </div>
+            <div class="mb-4">
+                <label for="password" class="form-label text-muted fw-bold small" style="color: var(--text-secondary) !important;">PASSWORD</label>
+                <input type="password" class="form-control form-control-lg bg-body text-body border-0 shadow-sm" style="border-radius: 12px; height: 55px;" id="password" required placeholder="••••••••">
+            </div>
+            <div id="loginAlert" class="alert alert-danger d-none" role="alert" style="border-radius: 12px;">
+                <i class="fa-solid fa-triangle-exclamation me-2"></i>Invalid credentials
+            </div>
+            <button type="submit" class="btn btn-primary w-100 fw-bold mt-2" style="border-radius: 15px; height: 55px; letter-spacing: 0.5px; font-size: 1.1rem;">Secure Login</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+    
+    // Very basic hardcoded auth for UI demo flow
+    if (user === 'admin' && pass === 'admin') {
+        localStorage.setItem('auth', 'true');
+        window.location.href = '/dashboard';
+    } else {
+        document.getElementById('loginAlert').classList.remove('d-none');
+    }
+});
+</script>
+{% endblock %}

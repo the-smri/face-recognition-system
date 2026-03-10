@@ -1,0 +1,12 @@
+{
+  "name": "face-recognition-attendance-system",
+  "version": "1.0.0",
+  "description": "Face Recognition Attendance System",
+  "main": "app.py",
+  "scripts": {
+    "dev": ".\\venv\\Scripts\\python.exe app.py",
+    "start": ".\\venv\\Scripts\\python.exe app.py"
+  },
+  "author": "",
+  "license": "ISC"
+}

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Main Content -->
+<div class="main-content text-center py-5">
+    <div class="d-flex flex-column justify-content-center align-items-center mb-5">
+        <h2 class="fw-bold mb-2">Attendance History</h2>
+        <p class="text-muted mb-4" style="color: var(--text-secondary) !important;">Review and export daily attendance logs.</p>
+        <a href="/api/export" class="btn btn-success shadow-sm fw-bold px-4 py-2 text-white" style="border-radius: 30px; letter-spacing: 0.5px; background: #10b981; border: none;">
+            <i class="fa-solid fa-download me-2"></i>Export CSV
+        </a>
+    </div>
+    
+    <div class="card p-4 border-0 text-start mx-auto" style="border-radius: 25px; background: var(--bg-card); max-width: 1000px;">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+            <div class="d-flex align-items-center mb-3 mb-md-0">
+                <div class="icon-box text-glow-success bg-opacity-10 d-inline-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px; border-radius: 12px; background-color: rgba(74, 222, 128, 0.1);">
+                    <i class="fa-solid fa-table"></i>
+                </div>
+                <h5 class="fw-bold mb-0">Daily Attendance Records</h5>
+            </div>
+            
+            <div class="input-group" style="width: 100%; max-width: 300px;">
+                <span class="input-group-text border-0 ps-3 pe-2" style="background-color: var(--bg-body); border-radius: 20px 0 0 20px;">
+                    <i class="fa-solid fa-search text-muted"></i>
+                </span>
+                <input type="text" class="form-control border-0 shadow-none bg-transparent" id="searchInput" placeholder="Search by name or ID..." style="background-color: var(--bg-body) !important; border-radius: 0 20px 20px 0; color: var(--text-primary);">
+            </div>
+        </div>
+        
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-borderless table-hover align-middle mb-0" id="historyTable" width="100%" cellspacing="0">
+                    <thead style="border-bottom: 2px solid var(--border-color);">
+                        <tr>
+                            <th class="text-muted fw-bold small pb-3" style="color: var(--text-secondary) !important;">DATE</th>
+                            <th class="text-muted fw-bold small pb-3" style="color: var(--text-secondary) !important;">TIME</th>
+                            <th class="text-muted fw-bold small pb-3" style="color: var(--text-secondary) !important;">STUDENT/EMPLOYEE ID</th>
+                            <th class="text-muted fw-bold small pb-3" style="color: var(--text-secondary) !important;">NAME</th>
+                            <th class="text-muted fw-bold small pb-3" style="color: var(--text-secondary) !important;">STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <i class="fa-solid fa-circle-notch fa-spin fa-2x text-primary mb-3"></i><br>
+                                <span style="color: var(--text-secondary);">Loading records...</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    function loadHistory() {
+        const tbody = document.getElementById('historyBody');
+        
+        fetch('/api/history')
+            .then(res => res.json())
+            .then(data => {
+                tbody.innerHTML = '';
+                
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-5"><i class="fa-solid fa-folder-open fa-2x mb-2" style="opacity: 0.5;"></i><br>No attendance records found in the database.</td></tr>';
+                    return;
+                }
+                
+                data.forEach(record => {
+                    const statusBadge = record.status === 'Present' 
+                        ? '<span class="badge bg-success bg-opacity-10 text-success px-3 py-2 border border-success border-opacity-25 rounded-pill"><i class="fa-solid fa-check-circle me-1"></i>Present</span>' 
+                        : `<span class="badge bg-warning text-dark px-3 py-2 rounded-pill">${record.status}</span>`;
+                        
+                    tbody.innerHTML += `
+                        <tr class="history-row">
+                            <td class="text-secondary"><i class="fa-regular fa-calendar me-2"></i>${record.date}</td>
+                            <td><i class="fa-regular fa-clock me-2 text-muted"></i>${record.time}</td>
+                            <td><span class="badge bg-secondary">${record.student_id}</span></td>
+                            <td class="fw-bold text-dark searchable-name">${record.name}</td>
+                            <td>${statusBadge}</td>
+                        </tr>
+                    `;
+                });
+            })
+            .catch(err => {
+                console.error(err);
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4"><i class="fa-solid fa-triangle-exclamation me-2"></i>Error loading data from the server.</td></tr>';
+            });
+    }
+
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        const filter = this.value.toLowerCase();
+        const rows = document.querySelectorAll('.history-row');
+        
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            if (text.includes(filter)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+
+    // Load data on start
+    loadHistory();
+</script>
+{% endblock %}

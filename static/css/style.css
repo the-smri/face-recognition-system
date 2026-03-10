@@ -1,0 +1,211 @@
+:root {
+  /* Light Theme Colors (Reference Image 2) */
+  --bg-body-light: #f4f6fa;
+  --bg-gradient-light: linear-gradient(135deg, #e8f5e9 0%, #e0f2f1 100%);
+  --bg-card-light: #ffffff;
+  --text-primary-light: #1e293b;
+  --text-secondary-light: #64748b;
+  --border-color-light: #e2e8f0;
+  --nav-bg-light: #ffffff;
+  --nav-text-light: #64748b;
+  --nav-active-light: #0d6efd;
+
+  /* Dark Theme Colors (Reference Image 1) */
+  --bg-body-dark: #0b1120;
+  --bg-gradient-dark: none;
+  --bg-card-dark: #0f172a;
+  --text-primary-dark: #f8fafc;
+  --text-secondary-dark: #94a3b8;
+  --border-color-dark: #1e293b;
+  --nav-bg-dark: #1e293b;
+  --nav-text-dark: #94a3b8;
+  --nav-active-dark: #38bdf8;
+}
+
+[data-theme="light"] {
+  --bg-body: var(--bg-body-light);
+  --bg-gradient: var(--bg-gradient-light);
+  --bg-card: var(--bg-card-light);
+  --text-primary: var(--text-primary-light);
+  --text-secondary: var(--text-secondary-light);
+  --border-color: var(--border-color-light);
+  --nav-bg: var(--nav-bg-light);
+  --nav-text: var(--nav-text-light);
+  --nav-active: var(--nav-active-light);
+}
+
+[data-theme="dark"] {
+  --bg-body: var(--bg-body-dark);
+  --bg-gradient: var(--bg-gradient-dark);
+  --bg-card: var(--bg-card-dark);
+  --text-primary: var(--text-primary-dark);
+  --text-secondary: var(--text-secondary-dark);
+  --border-color: var(--border-color-dark);
+  --nav-bg: var(--nav-bg-dark);
+  --nav-text: var(--nav-text-dark);
+  --nav-active: var(--nav-active-dark);
+}
+
+body {
+  font-family: "Outfit", "Inter", sans-serif;
+  background-color: var(--bg-body);
+  background-image: var(--bg-gradient);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100vh;
+  padding-bottom: 100px; /* Space for bottom nav */
+}
+
+/* Bottom Navigation Bar */
+.bottom-nav {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--nav-bg);
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid var(--border-color);
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--nav-text);
+  text-decoration: none;
+  padding: 5px 15px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: color 0.3s ease;
+  min-width: 80px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.bottom-nav-item i {
+  font-size: 1.25rem;
+  margin-bottom: 5px;
+}
+
+.bottom-nav-item:hover,
+.bottom-nav-item.active {
+  color: var(--nav-active);
+}
+
+.theme-toggle-btn {
+  background: none;
+  border: none;
+  color: var(--nav-text);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 5px 15px;
+  transition: color 0.3s ease;
+  border-left: 1px solid var(--border-color);
+  margin-left: 5px;
+}
+
+.theme-toggle-btn:hover {
+  color: var(--text-primary);
+}
+
+.main-content {
+  padding: 30px 15px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Base Card Overrides */
+.card {
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.text-muted {
+  color: var(--text-secondary) !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+}
+
+/* Glowing text classes for specific elements */
+.text-glow-primary {
+  color: #38bdf8;
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+}
+.text-glow-purple {
+  color: #c084fc;
+  text-shadow: 0 0 10px rgba(192, 132, 252, 0.3);
+}
+.text-glow-success {
+  color: #4ade80;
+  text-shadow: 0 0 10px rgba(74, 222, 128, 0.3);
+}
+
+.stat-card {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+  transition: transform 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.video-container {
+  background-color: #1a1a1a;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4/3;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+#videoElement {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* Mirror webcam */
+}
+
+/* Canvas for drawing bounding boxes overlaying the video */
+#canvasElement {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  transform: scaleX(-1);
+}
+
+.pulse {
+  animation: pulse-animation 2s infinite;
+}
+
+@keyframes pulse-animation {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(78, 115, 223, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(78, 115, 223, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(78, 115, 223, 0);
+  }
+}

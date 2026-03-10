@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Face Recognition Attendance</title>
+    <!-- Bootstrap 5 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- FontAwesome icons -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Custom CSS -->
+    <link
+      href="{{ url_for('static', filename='css/style.css') }}"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Main Content Block -->
+    <div class="main-content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav" id="bottomNav">
+      <a href="/dashboard" class="bottom-nav-item" id="nav-dashboard">
+        <i class="fa-solid fa-house"></i>
+        Dashboard
+      </a>
+      <a href="/register" class="bottom-nav-item" id="nav-register">
+        <i class="fa-solid fa-user-plus"></i>
+        Register Face
+      </a>
+      <a href="/recognize" class="bottom-nav-item" id="nav-recognize">
+        <i class="fa-solid fa-camera"></i>
+        Take Attendance
+      </a>
+      <a href="/history" class="bottom-nav-item" id="nav-history">
+        <i class="fa-solid fa-clipboard-list"></i>
+        Records
+      </a>
+      <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle Theme">
+        <i class="fa-solid fa-sun" id="themeIcon"></i>
+      </button>
+    </nav>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Theme Toggle Scripts -->
+    <script>
+      // Automatically apply theme from localStorage
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      
+      const themeToggleBtn = document.getElementById('themeToggleBtn');
+      const themeIcon = document.getElementById('themeIcon');
+      
+      if (savedTheme === 'light') {
+          themeIcon.classList.replace('fa-sun', 'fa-moon');
+      }
+
+      themeToggleBtn.addEventListener('click', () => {
+          let currentTheme = document.documentElement.getAttribute('data-theme');
+          let targetTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          
+          document.documentElement.setAttribute('data-theme', targetTheme);
+          localStorage.setItem('theme', targetTheme);
+          
+          if (targetTheme === 'dark') {
+              themeIcon.classList.replace('fa-moon', 'fa-sun');
+          } else {
+              themeIcon.classList.replace('fa-sun', 'fa-moon');
+          }
+      });
+
+      // Show bottom nav
+      if (window.location.pathname !== '/') {
+          document.getElementById('bottomNav').classList.remove('d-none');
+          
+          // Set active path
+          const path = window.location.pathname;
+          if(path === '/dashboard') document.getElementById('nav-dashboard').classList.add('active');
+          if(path === '/register') document.getElementById('nav-register').classList.add('active');
+          if(path === '/recognize') document.getElementById('nav-recognize').classList.add('active');
+          if(path === '/history') document.getElementById('nav-history').classList.add('active');
+      }
+    </script>
+    
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %} {% endblock %}
+  </body>
+</html>

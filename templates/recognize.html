@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Main Content -->
+<div class="main-content text-center py-5">
+    <div class="d-flex flex-column justify-content-center align-items-center mb-5">
+        <h2 class="fw-bold mb-2">Live Attendance Recognition</h2>
+        <p class="text-muted mb-4" style="color: var(--text-secondary) !important;">Seamlessly mark attendance using real-time face tracking.</p>
+        <button id="toggleCamBtn" class="btn btn-primary shadow-sm fw-bold px-4 py-2" style="border-radius: 30px; letter-spacing: 0.5px;">
+            <i class="fa-solid fa-video me-2"></i>Start Camera
+        </button>
+    </div>
+    
+    <div class="row justify-content-center g-4">
+        <!-- Camera Section -->
+        <div class="col-lg-8">
+            <div class="card h-100 p-4 border-0" style="border-radius: 25px; background: var(--bg-card);">
+                <div class="d-flex justify-content-between align-items-center w-100 mb-4 text-start">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box text-glow-purple bg-opacity-10 d-inline-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px; border-radius: 12px; background-color: rgba(192, 132, 252, 0.1);">
+                            <i class="fa-solid fa-expand"></i>
+                        </div>
+                        <h5 class="fw-bold mb-0">Detection Feed</h5>
+                    </div>
+                    <span id="systemStatus" class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary px-3 py-2 border border-secondary border-opacity-25" style="font-size: 0.85rem;">System Idle</span>
+                </div>
+                
+                <div class="card-body p-0 position-relative d-flex justify-content-center w-100">
+                    <div class="video-container shadow-sm w-100" style="max-width: 700px; border-radius: 20px; overflow: hidden; background: #000; position: relative;">
+                        <video id="videoElement" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+                        <canvas id="canvasElement" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></canvas>
+                        
+                        <!-- Real-time Status Overlay -->
+                        <div id="recognitionOverlay" class="d-none shadow d-inline-flex align-items-center justify-content-center px-4 py-2 position-absolute" style="bottom: 20px; left: 50%; transform: translateX(-50%); border-radius: 30px; z-index: 10; font-weight: 600; letter-spacing: 0.5px;">
+                            <i class="fa-solid fa-circle-user me-2"></i><span id="detectedName">Unknown</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 text-center w-100">
+                    <p class="text-muted small mb-0 p-3 rounded-4 mx-auto" style="max-width: 600px; background-color: rgba(245, 158, 11, 0.1); color: #d97706 !important;">
+                        <i class="fa-solid fa-lightbulb me-2 text-warning"></i> Face recognition is active only when the camera is running. Ensure adequate lighting.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Live Log -->
+        <div class="col-lg-4">
+            <div class="card h-100 p-4 border-0 text-start" style="border-radius: 25px; background: var(--bg-card);">
+                <div class="d-flex align-items-center mb-4 text-start">
+                    <div class="icon-box text-glow-success bg-opacity-10 d-inline-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px; border-radius: 12px; background-color: rgba(74, 222, 128, 0.1);">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+                    <h5 class="fw-bold mb-0">Live Activity Log</h5>
+                </div>
+                
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush" id="liveLog" style="max-height: 500px; overflow-y: auto;">
+                        <li class="list-group-item text-center py-5 border-0 bg-transparent" id="emptyLogMsg">
+                            <i class="fa-solid fa-hourglass-empty fa-2x mb-3" style="color: var(--text-secondary); opacity: 0.5;"></i><br>
+                            <span style="color: var(--text-secondary);">No attendance marked yet.</span>
+                        </li>
+                        <!-- Logs populated here -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    const video = document.getElementById('videoElement');
+    const canvas = document.getElementById('canvasElement');
+    const ctx = canvas.getContext('2d');
+    const toggleBtn = document.getElementById('toggleCamBtn');
+    const systemStatus = document.getElementById('systemStatus');
+    const detectedNameUI = document.getElementById('detectedName');
+    const recognitionOverlay = document.getElementById('recognitionOverlay');
+    
+    let streamActive = false;
+    let recognizeInterval;
+    const FRAME_RATE = 1000; // Send frame every 1 second
+
+    toggleBtn.addEventListener('click', async () => {
+        if (!streamActive) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+                video.srcObject = stream;
+                streamActive = true;
+                toggleBtn.innerHTML = '<i class="fa-solid fa-video-slash me-2"></i>Stop Camera';
+                toggleBtn.classList.replace('btn-primary', 'btn-danger');
+                systemStatus.className = 'badge bg-success pulse';
+                systemStatus.innerText = 'Active & Scanning';
+                
+                video.onloadedmetadata = () => {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    startRecognitionLoop();
+                };
+            } catch (err) {
+                console.error("Error accessing webcam: ", err);
+                alert("Could not access webcam. Please allow permissions.");
+            }
+        } else {
+            stopCamera();
+        }
+    });
+
+    function stopCamera() {
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+            video.srcObject = null;
+        }
+        clearInterval(recognizeInterval);
+        streamActive = false;
+        toggleBtn.innerHTML = '<i class="fa-solid fa-video me-2"></i>Start Camera';
+        toggleBtn.classList.replace('btn-danger', 'btn-primary');
+        systemStatus.className = 'badge bg-secondary';
+        systemStatus.innerText = 'System Idle';
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        recognitionOverlay.classList.add('d-none');
+    }
+
+    function startRecognitionLoop() {
+        recognizeInterval = setInterval(async () => {
+            if (!streamActive) return;
+            
+            const logicCanvas = document.createElement('canvas');
+            logicCanvas.width = video.videoWidth;
+            logicCanvas.height = video.videoHeight;
+            const lCtx = logicCanvas.getContext('2d');
+            lCtx.drawImage(video, 0, 0);
+            
+            const base64Image = logicCanvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+            
+            try {
+                const response = await fetch('/api/recognize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: base64Image })
+                });
+                
+                const result = await response.json();
+                
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                if (response.ok && result.faces && result.faces.length > 0) {
+                    recognitionOverlay.classList.remove('d-none');
+                    
+                    result.faces.forEach(face => {
+                        const [top, right, bottom, left] = face.box;
+                        
+                        ctx.strokeStyle = face.name !== 'Unknown' ? '#1cc88a' : '#e74a3b';
+                        ctx.lineWidth = 4;
+                        ctx.strokeRect(left, top, right - left, bottom - top);
+                        
+                        detectedNameUI.innerText = face.name;
+                        if (face.name !== 'Unknown') {
+                            recognitionOverlay.className = 'overlay-status bg-success shadow';
+                            if (face.status === "Marked" || face.status === "Already marked today") {
+                                appendToLogOnce(face.name, face.student_id, new Date().toLocaleTimeString());
+                            }
+                        } else {
+                            recognitionOverlay.className = 'overlay-status bg-danger shadow';
+                        }
+                    });
+                } else {
+                    recognitionOverlay.classList.add('d-none');
+                }
+            } catch (err) {
+                console.error("Recognition Error:", err);
+            }
+            
+        }, FRAME_RATE);
+    }
+    
+    function appendToLogOnce(name, id, time) {
+        const liveLog = document.getElementById('liveLog');
+        const emptyMsg = document.getElementById('emptyLogMsg');
+        
+        if (emptyMsg) emptyMsg.remove();
+        
+        const existing = document.getElementById(`log-${id}`);
+        if (!existing) {
+            const li = document.createElement('li');
+            li.id = `log-${id}`;
+            li.className = 'list-group-item d-flex justify-content-between align-items-center animation-fade-in py-3';
+            li.innerHTML = `
+                <div>
+                    <h6 class="my-0 font-weight-bold text-dark">${name}</h6>
+                    <small class="text-muted"><i class="fa-solid fa-id-badge me-1"></i>${id}</small>
+                </div>
+                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2"><i class="fa-solid fa-check me-1"></i>${time}</span>
+            `;
+            liveLog.prepend(li);
+        }
+    }
+
+    window.addEventListener('beforeunload', () => {
+        stopCamera();
+    });
+</script>
+
+<style>
+.animation-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+{% endblock %}
